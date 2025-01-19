@@ -76,28 +76,37 @@ except Exception as e:
     st.stop()
 
 # Define numeric and non-numeric features
-numeric_features = ['model_year', 'mileage', 'horsepower', 'engine_size']
-non_numeric_features = ['brand', 'ext_col', 'int_col', 'accident', 'transmission_type']
+numeric_features = ['model_year', 'mileage', 'horsepower', 'engine_size'] 
+non_numeric_features = ['make', 'car_model', 'ext_col', 'int_col', 'accident', 'transmission_type']
 
-# Categorical choices for user-friendly dropdowns
-brand_choices = sorted(['Ford', 'Hyundai', 'Lexus', 'INFINITI', 'Audi', 'Acura', 'BMW',
-                    'Tesla', 'Land', 'Aston', 'Toyota', 'Lincoln', 'Jaguar',
-                    'Mercedes-Benz', 'Dodge', 'Nissan', 'Genesis', 'Chevrolet', 'Kia',
-                    'Jeep', 'Bentley', 'Honda', 'Lucid', 'MINI', 'Porsche', 'Hummer',
-                    'Chrysler', 'Volvo', 'Cadillac', 'Lamborghini', 'Maserati',
-                    'Volkswagen', 'Subaru', 'Rivian', 'GMC', 'RAM', 'Alfa', 'Ferrari',
-                    'Scion', 'Mitsubishi', 'Mazda', 'Saturn', 'Bugatti', 'Polestar',
-                    'Rolls-Royce', 'McLaren', 'Buick', 'Lotus', 'Pontiac', 'FIAT',
-                    'Karma', 'Saab', 'Mercury', 'Plymouth', 'smart', 'Maybach',
-                    'Suzuki'])
-ext_col_choices = sorted(["Purple", "Black", "White", "Gray", "Red", "Blue", "Tan", "Other"]) 
-int_col_choices = sorted(["Purple", "Black", "White", "Gray", "Red", "Blue", "Tan", "Other"]) 
+# Categorical choices for dropdowns
+with open("make_choices.txt", "r") as file:
+    data = file.read()  
+    make_list = eval(data)
+
+with open("car_model_choices.txt", "r") as file:
+    data = file.read() 
+    car_model_list = eval(data)
+
+with open("ext_col_choices.txt", "r") as file:
+    data = file.read() 
+    ext_col_list = eval(data)
+
+with open("int_col_choices.txt", "r") as file:
+    data = file.read()
+    int_col_list = eval(data)
+
+make_choices = sorted(make_list)
+car_model_choices = sorted(car_model_list)
+ext_col_choices = sorted(ext_col_list) 
+int_col_choices = sorted(int_col_list) 
 accident_choices = ["No", "Yes"]
 transmission_choices = ["Automatic", "Manual"]
 
 # Map dropdown selections to encoded integers
 dropdown_mappings = {
-    "brand": brand_choices,
+    "make": make_choices,
+    "model": car_model_choices,
     "ext_col": ext_col_choices,
     "int_col": int_col_choices,
     "accident": accident_choices,
@@ -121,24 +130,24 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# User inputs for numeric features
-model_year = st.number_input("Model Year", min_value=1900, max_value=2025, step=1, value=2020)
+# User Inputs 
+make = st.selectbox("Make", options=make_choices)
+car_model = st.selectbox("Model", options=car_model_choices)
+model_year = st.number_input("Year", min_value=1900, max_value=2025, step=1, value=2020)
 mileage = st.number_input("Mileage", min_value=0.0, max_value=1e6, step=100.0, value=50000.0)
-horsepower = st.number_input("Horsepower", min_value=0.0, max_value=2000.0, step=10.0, value=150.0)
-engine_size = st.number_input("Engine Size (liters)", min_value=0.0, max_value=10.0, step=0.1, value=2.0)
-
-# User inputs for non-numeric features
-brand = st.selectbox("Brand", options=brand_choices)
+transmission_type = st.selectbox("Transmission Type", options=transmission_choices)
 ext_col = st.selectbox("Exterior Color", options=ext_col_choices)
 int_col = st.selectbox("Interior Color", options=int_col_choices)
 accident = st.selectbox("Has the car been in an accident?", options=accident_choices)
-transmission_type = st.selectbox("Transmission Type", options=transmission_choices)
+horsepower = st.number_input("Horsepower", min_value=0.0, max_value=2000.0, step=10.0, value=150.0)
+engine_size = st.number_input("Engine Size (liters)", min_value=0.0, max_value=10.0, step=0.1, value=2.0)
 
 # Prediction button
 if st.button("Predict Price"):
     # Map dropdown selections to encoded integers
     mapped_inputs = {
-        "brand": brand_choices.index(brand),
+        "make": make_choices.index(make),
+        "model": car_model_choices.index(car_model),
         "ext_col": ext_col_choices.index(ext_col),
         "int_col": int_col_choices.index(int_col),
         "accident": accident_choices.index(accident),
@@ -147,8 +156,10 @@ if st.button("Predict Price"):
 
     # Prepare the input DataFrame
     input_features = pd.DataFrame([[
-        model_year, mileage, horsepower, engine_size,
-        mapped_inputs["brand"], mapped_inputs["ext_col"], mapped_inputs["int_col"],
+        model_year, mileage, 
+        horsepower, engine_size,
+        mapped_inputs["make"], mapped_inputs["model"], 
+        mapped_inputs["ext_col"], mapped_inputs["int_col"],
         mapped_inputs["accident"], mapped_inputs["transmission_type"]
     ]], columns=numeric_features + non_numeric_features)
 
